@@ -9,8 +9,15 @@
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{listings}
+\usepackage{color}
 \setlength\parindent{20pt}
-
+\lstset{language=python,
+		commentstyle=\color{blue},
+		keywordstyle=\color{red},
+		emph={verify,_find_method_hash},
+		emphstyle=\color{green}
+		}
 \begin{document}
 \begin{titlepage}
   \title{Exploit de la vulnérabilité CVE-2016-1494\
@@ -26,25 +33,91 @@
 
 La vulnérabilité CVE-2016-1494 a été soumise par Filippo Valsorda le 5 janvier 2016. Il s'agit d'une possibilité de falsifier des signatures à exposant faible dans la module rsa de python. Ce faille est présente dans les versions antérieures à 3.3.
 
-\section{Les signatures RSA}
+\section{Les signatures RSA}\label{section_2}
 
 Pour signer un message en RSA, on joint ce message d'un hash du message, chiffré avec la clé privé de l'expéditeur comme ceci :
 $$
-m^e mod N = s
+m^e\ mod\ N = s \\
+ou (e,n) est la clé publique du destinataire
 $$
 Avec $m$ le hash du message à signer, $e$ l'exposant et $N$ le modulo de la clé privé de l'expéditeur. On obtient $s$ la signature.\\
 
 Lorsque le correspondant reçoit la signature $s$, il effectue l'opération suivante :
 $$
-s^d mod N = m
+s^d\ mod\ N = m
 $$
-Avec $d$ la clé publique de l'expéditeur.
+Avec $d$ la clé privée de l'expéditeur.
 
 Il calcule ensuite le hash du message et le compare à la signature déchiffrée $m$.
 
+Si les deux hash du message ne sont pas identiques, le destinataire sait que le message n'a pas été envoyé par le bon expéditeur.
+
+\section{Faille}
+\subsection{Système compromis}
+
+Le service compromis est la librairie python proposé pour le chiffrage rsa. Si l'exposant de chiffrement e est trop faible, il est possible de pouvoir imiter la signature d'une personne à partir d'un message intercepté. Tous les systèmes informatiques utilisant cette bibliothèque peuvent être compromis.
+
+\subsection{Vulnérabilité}
+La faille se trouve dans la fonction verify() de la librairie python-rsa. Cette fonction permet de vérifier l'identité du destinataire grâce à sa signature rsa (voir \nameref{section_2}). \\
+En regardant le code de cette fonction, on peut voir que cette fonction accepte une certaine forme de message de signature (voir \nameref{annexe_1})\\
+Cette forme est la suivante:
+\begin{center}
+00 01 XX XX ... XX XX 00 ASN.1 HASH 
+\end{center}
 
 
 
+\section{Annexes}
+\subsection{Annexe 1 - Code de la fonction verify}\label{annexe_1}
+\begin{lstlisting}
+def verify(message, signature, pub_key):  
+    blocksize = common.byte_size(pub_key.n)
+    encrypted = transform.bytes2int(signature)
+    decrypted = core.decrypt_int(encrypted, pub_key.e, pub_key.n)
+    clearsig = transform.int2bytes(decrypted, blocksize)
+
+    # If we can't find the signature  marker, verification failed.
+    if clearsig[0:2] != b('\x00\x01'):
+        raise VerificationError('Verification failed')
+
+    # Find the 00 separator between the padding and the payload
+    try:
+        sep_idx = clearsig.index(b('\x00'), 2)
+    except ValueError:
+        raise VerificationError('Verification failed')
+
+    # Get the hash and the hash method
+    (method_name, signature_hash) = _find_method_hash(clearsig[sep_idx+1:])
+    message_hash = _hash(message, method_name)
+
+    # Compare the real hash to the hash in the signature
+    if message_hash != signature_hash:
+        raise VerificationError('Verification failed')
+
+    return True
+
+def _find_method_hash(method_hash):  
+    for (hashname, asn1code) in HASH_ASN1.items():
+        if not method_hash.startswith(asn1code):
+            continue
+
+        return (hashname, method_hash[len(asn1code):])
+
+    raise VerificationError('Verification failed')
+
+HASH_ASN1 = {  
+    'MD5': b('\x30\x20\x30\x0c\x06\x08\x2a\x86'
+             '\x48\x86\xf7\x0d\x02\x05\x05\x00\x04\x10'),
+    'SHA-1': b('\x30\x21\x30\x09\x06\x05\x2b\x0e'
+               '\x03\x02\x1a\x05\x00\x04\x14'),
+    'SHA-256': b('\x30\x31\x30\x0d\x06\x09\x60\x86'
+                 '\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20'),
+    'SHA-384': b('\x30\x41\x30\x0d\x06\x09\x60\x86'
+                 '\x48\x01\x65\x03\x04\x02\x02\x05\x00\x04\x30'),
+    'SHA-512': b('\x30\x51\x30\x0d\x06\x09\x60\x86'
+                 '\x48\x01\x65\x03\x04\x02\x03\x05\x00\x04\x40'),
+}
+\end{lstlisting}
 
 
 
