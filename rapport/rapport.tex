@@ -66,6 +66,50 @@ Cette forme est la suivante:
 00 01 XX XX ... XX XX 00 ASN.1 HASH 
 \end{center}
 
+On peut voir que les chiffres centraux ont peu d'importances dans la signature. Sachant qu'il est pratiquement impossible de trouver la clé secrète du destinataire, nous allons plutôt essayer de faire une approximation de cette signature.
+
+A partir de ce moment, on comprend que pour falsifier la signature interceptée, il suffit de reproduire le préfixe et le suffixe de cette signature. Plus spécifiquement, il faut créer une signature qui, lorsqu'elle est élevée à la puisse e, on retombe sur le préfixe et le suffixe de la signature copié.
+
+Comme dit précédemment, les chiffres centraux de la signature ont peu d'importance donc pour notre signature. Nous allons donc utiliser la racine cubique pour le préfixe de notre signature. Cela permettra d'avoir les bons chiffres pour le préfixe avec une approximation sur les bits centraux.
+
+La partie la plus difficile se trouve dans la façon de trouver le suffixe. Il faut trouver un message qui, élevé au cube, donne le suffixe de la signature à imiter.
+Posons d'abord les notations. Notons: 
+\begin{enumerate}
+\item s pour le message source
+\item f pour pour le message source élevé à la puissance 3
+\item c pour le suffixe cible à recréer
+\end{enumerate}
+Nous allons comparer bit à bit f et c. A chaque fois que le bit de f diffère de celui de c, nous allons changer le bit dans s et recréer c en cubant le nouveau message s. Cela devrait permettre d'avoir un message qui, une fois à la puissance trois, donne le même suffixe que la signature à copier. Les bits de poids plus fort ne sont pas un souci car cela reste une approximation de la signature.
+
+Prenons un exemple. Nous allons essayer de créer un message qui possède le suffixe '100101011'. Nous prenons donc un message s égal à '000000001'. Par conséquent f vaut '000000001'.
+
+Nous comparons les premiers bits de f et c. Ils sont identique donc nous ne faisons rien.
+Le deuxième bit de chaque message ne sont pas identique. Nous changeons donc le deuxième bit dans s et recréons f en cubant s. A ce stade, nous avons les valeurs suivantes:
+\begin{center}
+\begin{enumerate}
+\item s = '000000011'
+\item f = '000001011'
+\item c = '100101011'
+\end{enumerate}
+\end{center}
+Nous continuons notre algorithme en comparant le nouveau f créé et le c. Les bits 3 à 5 sont identiques donc nous ne faisons rien.
+Le bit 6 diffère donc nous changeons le bit 6 de s et nous recréons c. Nous avons les valeurs suivantes (des zéros ont été ajoutés pour plus de visibilité):
+\begin{center}
+\begin{enumerate}
+\item s = '0000000000100011'
+\item f = '1010011101111011'
+\item c = '0000000100101011'
+\end{enumerate}
+\end{center}
+Comme nous ne touchons pas au bit de poids faible de s, nous savons que le début du suffixe ne va pas changer. Nous réintérons se processus jusqu'à avoir un message f avec un un suffixe identique à c. C'est à dire:
+\begin{center}
+\begin{enumerate}
+\item s = '0000000001100011'
+\item f = '1100111000111011'
+\item c = '0000000100101011'
+\end{enumerate}
+\end{center}
+
 
 
 \section{Annexes}
