@@ -59,6 +59,7 @@ Le service compromis est la librairie python proposé pour le chiffrage rsa. Si 
 
 \subsection{Vulnérabilité}
 La faille se trouve dans la fonction verify() de la librairie python-rsa. Cette fonction permet de vérifier l'identité du destinataire grâce à sa signature rsa (voir \nameref{section_2}). \\
+Pour toute cette partie, nous allons utiliser la clé publique (3,n).
 En regardant le code de cette fonction, on peut voir que cette fonction accepte une certaine forme de message de signature (voir \nameref{annexe_1})\\
 Cette forme est la suivante:
 \begin{center}
