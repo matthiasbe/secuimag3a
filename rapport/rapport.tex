@@ -55,7 +55,7 @@ Si les deux hash du message ne sont pas identiques, le destinataire sait que le 
 \section{Faille}
 \subsection{Système compromis}
 
-Le service compromis est la librairie python proposé pour le chiffrage rsa. Si l'exposant de chiffrement e est trop faible, il est possible de pouvoir imiter la signature d'une personne à partir d'un message intercepté. Tous les systèmes informatiques utilisant cette bibliothèque peuvent être compromis.
+Le service compromis est la librairie python proposé pour le chiffrage rsa. Si l'exposant de chiffrement e est trop faible, il est possible de pouvoir imiter la signature d'une personne à partir d'un message intercepté. Tous les systèmes informatiques utilisant cette bibliothèque peuvent être compromis. C'est-à-dire que toutes les machines clientes ou serveur peuvent être compromis.
 
 \subsection{Vulnérabilité}
 La faille se trouve dans la fonction verify() de la librairie python-rsa. Cette fonction permet de vérifier l'identité du destinataire grâce à sa signature rsa (voir \nameref{section_2}). \\
@@ -88,27 +88,34 @@ Le deuxième bit de chaque message ne sont pas identique. Nous changeons donc le
 \begin{center}
 \begin{enumerate}
 \item s = '000000011'
-\item f = '000001011'
+\item f = '000011011'
 \item c = '100101011'
 \end{enumerate}
 \end{center}
-Nous continuons notre algorithme en comparant le nouveau f créé et le c. Les bits 3 à 5 sont identiques donc nous ne faisons rien.
-Le bit 6 diffère donc nous changeons le bit 6 de s et nous recréons c. Nous avons les valeurs suivantes (des zéros ont été ajoutés pour plus de visibilité):
+Nous continuons notre algorithme en comparant le nouveau f créé et le c. Les bits 3 et 4 sont identiques donc nous ne faisons rien.
+Le bit 5 diffère donc nous changeons le bit 5 de s et nous recréons c. Nous avons les valeurs suivantes (des zéros ont été ajoutés pour plus de visibilité):
 \begin{center}
 \begin{enumerate}
-\item s = '0000000000100011'
-\item f = '1010011101111011'
+\item s = '0000000010011'
+\item f = '1101011001011'
+\item c = '0000100101011'
+\end{enumerate}
+\end{center}
+Comme nous ne touchons pas aux bits de poids faible de s, nous savons que le début du suffixe ne va pas changer. Nous réintérons se processus jusqu'à avoir un message f avec un un suffixe identique à c. C'est à dire:
+\begin{center}
+\begin{enumerate}
+\item s = '0000000100110011'
+\item f = '1000000100101011'
 \item c = '0000000100101011'
 \end{enumerate}
 \end{center}
-Comme nous ne touchons pas au bit de poids faible de s, nous savons que le début du suffixe ne va pas changer. Nous réintérons se processus jusqu'à avoir un message f avec un un suffixe identique à c. C'est à dire:
-\begin{center}
-\begin{enumerate}
-\item s = '0000000001100011'
-\item f = '1100111000111011'
-\item c = '0000000100101011'
-\end{enumerate}
-\end{center}
+
+Pour vérification, nous avons bien $s^{3}$ = 1101110011000000100101011 qui possède le bon suffixe.
+
+En concaténant le préfixe (avec rajout de bits de poids faibles pour avoir la longueur de la signature nécessaire) et le suffixe nous avons un signature qui est accepter par la fonction verify.Il faut juste vérifier que la concaténation du suffixe ne modifie pas les bits de poids forts. Pour cela, il suffit de prendre un suffixe assez petit.
+
+Pour finir, il ne faut pas que les bits centraux soient des couples de zéros. Pour éviter cela, on réitère l'algorithme avec des messages s différents.
+
 
 
 
