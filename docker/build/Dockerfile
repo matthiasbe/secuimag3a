@@ -1,5 +1,5 @@
 FROM library/ubuntu:latest
 
-#RUN apt-get install python=3.2.3
+RUN apt-get install python=3.2.2
 
 #CMD python --version
