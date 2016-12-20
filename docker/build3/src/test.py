@@ -10,16 +10,17 @@ from gmpy2 import mpz, iroot, powmod, mul, t_mod
 
 if len(sys.argv)!= 2:
     print('use new version')
-    sys.path.append('./rsa-3.4.2')
+    sys.path.append('../include/rsa-3.4.2')
 else:
     if sys.argv[1] == 'old':
         print ('use version 3.2.3')
-        sys.path.append('./rsa-3.2.3')
+        sys.path.append('../include/rsa-3.2.3')
     else:
         print ('use version 3.4.2')
-        sys.path.append('./rsa-3.4.2')
+        sys.path.append('../include/rsa-3.4.2')
 
 import rsa
+
 # In[9]:
 
 def to_bytes(n):
