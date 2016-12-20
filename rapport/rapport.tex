@@ -37,8 +37,9 @@ La vulnérabilité CVE-2016-1494 a été soumise par Filippo Valsorda le 5 janvi
 
 Pour signer un message en RSA, on joint ce message d'un hash du message, chiffré avec la clé privé de l'expéditeur comme ceci :
 $$
-m^e\ mod\ N = s \\
-ou (e,n) est la clé publique du destinataire
+m^e\ mod\ N = s $$
+$$
+ou\ (e,n)\ est\ la\ cl\acute{e} \ publique\ du\ destinataire
 $$
 Avec $m$ le hash du message à signer, $e$ l'exposant et $N$ le modulo de la clé privé de l'expéditeur. On obtient $s$ la signature.\\
 
@@ -116,6 +117,10 @@ En concaténant le préfixe (avec rajout de bits de poids faibles pour avoir la 
 
 Pour finir, il ne faut pas que les bits centraux soient des couples de zéros. Pour éviter cela, on réitère l'algorithme avec des messages s différents.
 
+
+\section{Architecture possible pour une attaque}
+Tous les systèmes qui communiquent entre deux serveurs peuvent être atteint. \\
+Prenons une personne qui essayent de se connecter à l'intranet de l'école. Nous avons donc une personne, appelé pour l'exemple Bob,sur une machine cliente, et le serveur de l'intranet, machine serveur. Prenons une deuxième personne, appelé Oscar, qui veut obtenir la signature de Bob. Nous nous basons sur le fait que la machine 
 
 
 
