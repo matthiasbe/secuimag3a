@@ -1,0 +1,9 @@
+#capitalize{
+    border-radius: 7px;
+    color: #ffffff;
+    font-weight: bold;
+    margin: 2px;
+    padding: 5px;
+    text-transform: capitalize;
+}
+
