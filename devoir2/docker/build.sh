@@ -1,1 +1,1 @@
-sudo docker build -t apache .
+sudo docker build -t apache2 .
